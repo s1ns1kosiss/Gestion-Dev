@@ -1,0 +1,225 @@
+{% extends 'base.html' %}
+{% load clp_format %}
+{% block title %}Resumen de Pago{% endblock %}
+
+{% block content %}
+<style>
+  .address-form-modern input[type="text"] {
+    border-radius: 8px;
+    border: 1.5px solid #e0e0e0;
+    padding: 0.6em 1em;
+    font-size: 1rem;
+    background: #fafbfc;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    width: 100%;
+    margin-bottom: 0.3em;
+  }
+  .address-form-modern input[type="text"]:focus {
+    border-color: #ff7b00;
+    box-shadow: 0 0 0 2px #ff7b0033;
+    outline: none;
+    background: #fffbe7;
+  }
+  .address-form-modern label {
+    font-weight: 500;
+    margin-bottom: 0.2em;
+    color: #444;
+  }
+  .address-form-modern .form-label .text-danger {
+    font-size: 1em;
+    margin-left: 0.2em;
+  }
+  .address-form-modern .btn-save-address {
+    width: 100%;
+    background: linear-gradient(90deg, #ff7b00 60%, #ff8c00 100%);
+    color: #fff;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    padding: 0.7em 0;
+    margin-top: 0.7em;
+    box-shadow: 0 2px 8px #ff7b0033;
+    transition: background 0.2s, box-shadow 0.2s;
+  }
+  .address-form-modern .btn-save-address:hover {
+    background: linear-gradient(90deg, #ff8c00 60%, #ff7b00 100%);
+    box-shadow: 0 4px 16px #ff7b0033;
+  }
+  @media (max-width: 991px) {
+    .pay-separator { display: none; }
+  }
+  .pay-separator {
+    border-right: 2px solid #ffe5b2;
+    min-height: 350px;
+    margin-right: -1px;
+  }
+  .paypal-container {
+    margin: 2rem 0;
+    padding: 1rem;
+    border-radius: 8px;
+    background: #f8f9fa;
+  }
+  .paypal-container h5 {
+    color: #003087;
+    margin-bottom: 1rem;
+  }
+</style>
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      <div class="card p-4 mx-auto" style="max-width: 950px;">
+        <h2 class="fw-bold mb-4 text-center">Resumen de tu compra</h2>
+        <div class="row g-4">
+          <!-- Columna de dirección -->
+          <div class="col-md-5 address-form-modern">
+            <h5 class="mb-3">Dirección de envío</h5>
+            {% if address %}
+              <div class="bg-light p-3 rounded mb-3">
+                <div><b>Calle:</b> {{ address.street }}</div>
+                <div><b>Número:</b> {{ address.number }}</div>
+                <div><b>Ciudad:</b> {{ address.city }}</div>
+                <div><b>Región:</b> {{ address.region }}</div>
+                <div><b>Código Postal:</b> {{ address.postal_code }}</div>
+              </div>
+              <button class="btn btn-sm btn-outline-primary mb-3" onclick="document.getElementById('address-form').style.display='block'; this.style.display='none';">Editar dirección</button>
+            {% endif %}
+            <form method="post" class="mb-4" id="address-form" style="{% if address %}display:none;{% endif %}">
+              {% csrf_token %}
+              <div class="row g-2">
+                <div class="col-12">
+                  <label for="id_street" class="form-label">Calle<span class="text-danger">*</span></label>
+                  {{ form.street }}
+                  {% if form.street.errors %}<div class="text-danger small">{{ form.street.errors.0 }}</div>{% endif %}
+                            </div>
+                <div class="col-6">
+                  <label for="id_number" class="form-label">Número<span class="text-danger">*</span></label>
+                  {{ form.number }}
+                  {% if form.number.errors %}<div class="text-danger small">{{ form.number.errors.0 }}</div>{% endif %}
+                        </div>
+                <div class="col-6">
+                  <label for="id_city" class="form-label">Ciudad<span class="text-danger">*</span></label>
+                  {{ form.city }}
+                  {% if form.city.errors %}<div class="text-danger small">{{ form.city.errors.0 }}</div>{% endif %}
+                            </div>
+                <div class="col-6">
+                  <label for="id_region" class="form-label">Región</label>
+                  {{ form.region }}
+                            </div>
+                <div class="col-6">
+                  <label for="id_postal_code" class="form-label">Código Postal</label>
+                  {{ form.postal_code }}
+                                </div>
+                            </div>
+              <button type="submit" class="btn btn-save-address">Guardar dirección</button>
+            </form>
+                            </div>
+          <div class="col-md-1 d-none d-md-flex align-items-center justify-content-center pay-separator"></div>
+          <!-- Columna de resumen de compra -->
+          <div class="col-md-6">
+            <table class="table table-hover align-middle">
+              <thead>
+                <tr>
+                  <th>Producto</th>
+                  <th class="text-center">Cantidad</th>
+                  <th class="text-end">Precio unitario</th>
+                  <th class="text-end">Subtotal</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in items %}
+                <tr>
+                  <td>
+                    <div class="d-flex align-items-center">
+                      <img src="{{ item.product.image }}" alt="{{ item.product.name }}" style="width: 50px; height: 50px; object-fit: contain; border-radius: 8px; margin-right: 10px;">
+                      <span>{{ item.product.name }}</span>
+                    </div>
+                  </td>
+                  <td class="text-center">{{ item.quantity }}</td>
+                  <td class="text-end">{{ item.product.price|clp }}</td>
+                  <td class="text-end">{{ item.get_total_price|clp }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="3" class="text-end fw-bold">Total:</td>
+                  <td class="text-end fw-bold" style="font-size: 1.3rem; color: #ff7b00;">{{ total|clp }}</td>
+                </tr>
+              </tfoot>
+            </table>
+            <div class="text-center mt-4">
+              <div class="paypal-container">
+                <h5>Pago seguro con PayPal</h5>
+                <div id="paypal-button-container"></div>
+              </div>
+              <script src="https://www.paypal.com/sdk/js?client-id=AQbINbSPC957qzrKGSW04jo6ioB0aiRJriPXMn2w6z8SgBaQvOodeu91GO_Ifeiw0qq-X_v28crGLkrv&currency=USD&intent=capture"></script>
+              <script>
+                var totalCLP = {{ total }};
+                var totalUSD = (totalCLP / 900).toFixed(2); // Ajusta el valor según el dólar actual
+                paypal.Buttons({
+                  style: {
+                    layout: 'vertical',
+                    color: 'blue',
+                    shape: 'rect',
+                    label: 'pay'
+                  },
+                  createOrder: function(data, actions) {
+                    return actions.order.create({
+                      purchase_units: [{
+                        amount: { 
+                          value: totalUSD,
+                          currency_code: 'USD'
+                        },
+                        description: 'Compra en nuestra tienda'
+                      }]
+                    });
+                  },
+                  onApprove: function(data, actions) {
+                    return actions.order.capture().then(function(details) {
+                      fetch("{% url 'paypal_complete' %}", {
+                        method: "POST",
+                        headers: {
+                          "Content-Type": "application/json",
+                          "X-CSRFToken": "{{ csrf_token }}"
+                        },
+                        body: JSON.stringify({
+                          orderID: data.orderID,
+                          payerID: data.payerID,
+                          details: details
+                        })
+                      })
+                      .then(response => response.json())
+                      .then(data => {
+                        if (data.success) {
+                          alert('¡Pago completado y orden registrada!');
+                          window.location.href = "{% url 'order_history' %}";
+                        } else {
+                          alert('Error al registrar la orden: ' + data.error);
+                        }
+                      });
+                    });
+                  },
+                  onError: function (err) {
+                    console.error('Error en PayPal:', err);
+                    alert('Hubo un error al procesar el pago. Por favor, intenta nuevamente.');
+                  }
+                }).render('#paypal-button-container');
+              </script>
+              <a href="{% url 'view_cart' %}" class="btn btn-outline-secondary ms-2">Volver al carrito</a>
+              {% if not address %}
+                <div class="text-danger mt-2">Debes guardar una dirección antes de continuar.</div>
+              {% endif %}
+            </div>
+          </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+// Mostrar el formulario de dirección si no hay dirección guardada
+if (!{{ address|yesno:'true,false' }}) {
+  document.getElementById('address-form').style.display = 'block';
+}
+</script>
+{% endblock %}

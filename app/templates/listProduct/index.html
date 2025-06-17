@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block js %}
+{% endblock js %}
+{% block title %}Listado de productos{% endblock %}
+{% block content %}
+{% load humanize %}
+<div class="col-12 col-md-6 offset-md-3">
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-striped table-hover table-responsive-sm">
+                <tr>
+                    <th>Nombre</th>
+                    <th>Marca</th>
+                    <th>Precio</th>
+                    <th>Cantidad</th>
+                    <th>Stocks</th>
+                    <th>Opciones</th>
+                </tr>
+
+                {% for product in Products %}
+                <tr>
+                    <td>{{ product.name | title }}</td>
+                    <td>{{ product.brand | title}}</td>
+                    <td>{{ product.price | intcomma }}</td>
+                    <td>{{ product.quantity | intcomma}}</td>
+                    <td>
+                        {% if product.stock >= 1 %}
+                        Producto Disponible
+                        {% else%}
+                        Producto sin stock
+                        {% endif %}
+                    </td>
+                    {% if perms.app.change_product %}
+                    <td><a href="{% url 'modifyProduct' product.id %}" class="btn btn-primary btn-sm">Modificar</a>
+                    {% endif %}
+                    {% if perms.app.delete_product %}           
+                    <a href="{% url 'deleteProduct' product.id  %}" onclick="deleteProduct({{product.id}})" class="btn btn-danger btn-sm">Eliminar</a>
+                    {% endif %}
+                    </td>
+                    <!-- the code is nice -->
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
