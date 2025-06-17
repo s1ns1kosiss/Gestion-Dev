@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block js %}
+<script>
+        Swal.fire({
+        title: "Producto añaido!",
+        icon: "success",
+        draggable: true
+    }); 
+</script>
+<!-- improve the code -->
+{% endblock js %}
+{% block title %}Añadir nuevos productos{% endblock %}
+{% block content %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+<div class="ps-3 m-1">
+    <a href="{% url 'listProduct' %}" class="btn btn-primary"><i class="fa-solid fa-angle-right"></i> Ir al listado</a>
+    
+</div>
+<div class="row">
+    <div class="col-12 col-md-6 offset-md-3">
+        <div class="card">
+            <div class="card-body">
+                <h2>Nuevo producto</h2>
+                <form action="" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+
+                    <br>
+                    <div class="d-flex justify-content-end">
+                        <input type="reset" value="Cancelar" class="btn btn-secondary">
+                        &nbsp;
+                        <input type="submit" value="Agregar" class="btn btn-primary">
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
